@@ -15,12 +15,43 @@ Try it out: **[Pixlib Demo on GitHub Pages](https://katamini.github.io/pixlib/)*
 - **Smart Color Quantization** - Uses median cut algorithm for optimal color reduction
 - **Multiple Input Sources** - Load from images, URLs, or File objects
 
-## 🚀 Quick Start
+## 📦 Installation
 
-### Include in HTML
+### Via CDN (Recommended)
+
+Include Pixlib directly from jsDelivr CDN:
+
+```html
+<!-- Latest version (minified) -->
+<script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@latest/dist/pixlib.min.js"></script>
+
+<!-- Specific version (recommended for production) -->
+<script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@v1.0.0/dist/pixlib.min.js"></script>
+
+<!-- Full version with comments -->
+<script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@latest/dist/pixlib.js"></script>
+```
+
+### Via GitHub Releases
+
+Download `pixlib.min.js` from the [latest release](https://github.com/katamini/pixlib/releases/latest) and include it locally:
+
+```html
+<script src="path/to/pixlib.min.js"></script>
+```
+
+### Direct from Repository
 
 ```html
 <script src="pixlib.js"></script>
+```
+
+## 🚀 Quick Start
+
+### Basic Usage
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@latest/dist/pixlib.min.js"></script>
 <script>
   // Convert an image element
   const img = document.getElementById('myImage');
@@ -252,7 +283,15 @@ Tested on:
 
 Pixlib supports multiple module systems:
 
-**Browser Global:**
+**Browser Global (CDN):**
+```html
+<script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@latest/dist/pixlib.min.js"></script>
+<script>
+  const canvas = Pixlib.convert(img, options);
+</script>
+```
+
+**Browser Global (Local):**
 ```html
 <script src="pixlib.js"></script>
 <script>
