@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixlib CDN Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .info {
+      background: #f0f0f0;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 Pixlib CDN Test</h1>
+  
+  <div class="info">
+    <h2>About This Test</h2>
+    <p>This page tests loading Pixlib from different CDN sources.</p>
+    <p>Once a release is published, the following CDN URLs will work:</p>
+    <ul>
+      <li><strong>jsDelivr:</strong> <code>https://cdn.jsdelivr.net/gh/katamini/pixlib@v1.0.0/dist/pixlib.min.js</code></li>
+      <li><strong>GitHub Raw:</strong> <code>https://raw.githubusercontent.com/katamini/pixlib/v1.0.0/dist/pixlib.min.js</code></li>
+    </ul>
+  </div>
+
+  <h2>Test Results</h2>
+  <div id="results"></div>
+
+  <h2>Local Test (Current Setup)</h2>
+  <div id="localTest"></div>
+
+  <!-- Local script for testing before release -->
+  <script src="pixlib.js"></script>
+
+  <script>
+    const resultsDiv = document.getElementById('results');
+    const localTestDiv = document.getElementById('localTest');
+
+    // Test if Pixlib is loaded
+    function testPixlibLoaded() {
+      if (typeof Pixlib !== 'undefined') {
+        localTestDiv.innerHTML = `
+          <div class="status success">
+            ✓ Pixlib loaded successfully from local source
+          </div>
+        `;
+        runLocalTests();
+      } else {
+        localTestDiv.innerHTML = `
+          <div class="status error">
+            ✗ Pixlib failed to load
+          </div>
+        `;
+      }
+    }
+
+    // Run basic functionality tests
+    function runLocalTests() {
+      try {
+        // Create a test canvas
+        const testCanvas = document.createElement('canvas');
+        testCanvas.width = 100;
+        testCanvas.height = 100;
+        const ctx = testCanvas.getContext('2d');
+        
+        // Draw a gradient
+        const gradient = ctx.createLinearGradient(0, 0, 100, 100);
+        gradient.addColorStop(0, '#ff0000');
+        gradient.addColorStop(0.5, '#00ff00');
+        gradient.addColorStop(1, '#0000ff');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 100, 100);
+
+        // Test conversion
+        const result = Pixlib.convert(testCanvas, {
+          pixelSize: 10,
+          colors: 8,
+          palette: 'graffiti'
+        });
+
+        if (result instanceof HTMLCanvasElement) {
+          localTestDiv.innerHTML += `
+            <div class="status success">
+              ✓ Pixlib.convert() works correctly
+            </div>
+            <div style="margin-top: 20px;">
+              <strong>Test Output:</strong><br>
+              Original (100x100):<br>
+              <canvas id="original"></canvas><br>
+              <br>
+              Pixelated (10 pixel blocks, 8 colors):<br>
+            </div>
+          `;
+          document.getElementById('original').replaceWith(testCanvas);
+          localTestDiv.appendChild(result);
+          result.style.border = '1px solid #ccc';
+          result.style.marginTop = '10px';
+        } else {
+          throw new Error('Result is not a canvas element');
+        }
+      } catch (error) {
+        localTestDiv.innerHTML += `
+          <div class="status error">
+            ✗ Pixlib.convert() failed: ${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // Add CDN instructions
+    resultsDiv.innerHTML = `
+      <div class="info">
+        <p><strong>Note:</strong> CDN testing requires an actual release to be published first.</p>
+        <p>After creating a release with the GitHub Action:</p>
+        <ol>
+          <li>Replace the local <code>&lt;script src="pixlib.js"&gt;</code> with a CDN URL</li>
+          <li>Reload this page</li>
+          <li>Verify Pixlib loads from the CDN</li>
+        </ol>
+        <p><strong>Example CDN script tags:</strong></p>
+        <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto;"><code>&lt;!-- Latest version --&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@latest/dist/pixlib.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- Specific version --&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@v1.0.0/dist/pixlib.min.js"&gt;&lt;/script&gt;</code></pre>
+      </div>
+    `;
+
+    // Run tests when page loads
+    testPixlibLoaded();
+  </script>
+</body>
+</html>
