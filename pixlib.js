@@ -157,10 +157,18 @@
           }
 
           const resultIdx = (ty * targetWidth + tx) * 4;
-          result[resultIdx] = Math.round(r / count);
-          result[resultIdx + 1] = Math.round(g / count);
-          result[resultIdx + 2] = Math.round(b / count);
-          result[resultIdx + 3] = Math.round(a / count);
+          if (count > 0) {
+            result[resultIdx] = Math.round(r / count);
+            result[resultIdx + 1] = Math.round(g / count);
+            result[resultIdx + 2] = Math.round(b / count);
+            result[resultIdx + 3] = Math.round(a / count);
+          } else {
+            // Handle edge case with transparent pixel
+            result[resultIdx] = 0;
+            result[resultIdx + 1] = 0;
+            result[resultIdx + 2] = 0;
+            result[resultIdx + 3] = 0;
+          }
         }
       }
 
