@@ -52,7 +52,7 @@ Download `pixlib.min.js` from the [latest release](https://github.com/katamini/p
 ### Basic Usage
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@latest/dist/pixlib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@latest/pixlib.min.js"></script>
 <script>
   // Convert an image element
   const img = document.getElementById('myImage');
@@ -286,7 +286,7 @@ Pixlib supports multiple module systems:
 
 **Browser Global (CDN):**
 ```html
-<script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@latest/dist/pixlib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@latest/pixlib.min.js"></script>
 <script>
   const canvas = Pixlib.convert(img, options);
 </script>
