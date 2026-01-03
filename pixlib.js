@@ -131,15 +131,23 @@
         return source;
       }
 
-      // Check if source is an HTMLImageElement or has image-like properties
-      if (!(source instanceof HTMLImageElement) && 
-          !source.width && !source.naturalWidth) {
-        throw new Error('source must be an HTMLImageElement or HTMLCanvasElement');
+      // Check if source is an HTMLImageElement or can be used as an image
+      if (!(source instanceof HTMLImageElement)) {
+        // If not an HTMLImageElement, check if it has drawable properties
+        if (!source.width && !source.naturalWidth) {
+          throw new Error('source must be an HTMLImageElement or HTMLCanvasElement');
+        }
       }
 
       const canvas = document.createElement('canvas');
       canvas.width = source.width || source.naturalWidth;
       canvas.height = source.height || source.naturalHeight;
+      
+      // Validate that we got valid dimensions
+      if (!canvas.width || !canvas.height) {
+        throw new Error('source must have valid width and height');
+      }
+      
       const ctx = canvas.getContext('2d');
       ctx.drawImage(source, 0, 0);
       return canvas;
