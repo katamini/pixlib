@@ -4,26 +4,40 @@ This document explains how to create a new release of Pixlib with distribution f
 
 ## Creating a Release
 
-### Method 1: Using Git Tags (Recommended)
+### Process Overview
 
-1. Create and push a version tag:
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
+1. **Create a GitHub Release** through the GitHub UI or API
+2. **The GitHub Action automatically**:
+   - Builds and minifies the library
+   - Uploads distribution files to the release (pixlib.js, pixlib.min.js, pixlib.min.js.map)
 
-2. The GitHub Action will automatically:
-   - Minify the library
-   - Create a GitHub Release
-   - Upload distribution files (pixlib.js, pixlib.min.js, pixlib.min.js.map)
-   - Generate release notes with CDN usage instructions
+### Step-by-Step Instructions
 
-### Method 2: Manual Workflow Dispatch
+1. Go to the [Releases page](https://github.com/katamini/pixlib/releases) in the repository
+2. Click **"Draft a new release"**
+3. Click **"Choose a tag"** and create a new tag (e.g., `v1.0.0`)
+4. Enter a release title (e.g., `Release v1.0.0`)
+5. Add release notes describing the changes
+6. Click **"Publish release"**
+7. The GitHub Action will automatically:
+   - Trigger when the release is published
+   - Minify the library using terser
+   - Upload the distribution files to the release
 
-1. Go to [Actions](https://github.com/katamini/pixlib/actions/workflows/release.yml) in the repository
-2. Click "Run workflow"
-3. Enter the version number (e.g., v1.0.1)
-4. Click "Run workflow"
+### Alternative: Using Git CLI
+
+You can also create a release using the GitHub CLI:
+
+```bash
+# Create and push a tag
+git tag -a v1.0.0 -m "Release v1.0.0"
+git push origin v1.0.0
+
+# Then create a release on GitHub (requires gh CLI)
+gh release create v1.0.0 --title "Release v1.0.0" --notes "Release notes here"
+```
+
+The workflow will trigger automatically when the release is published.
 
 ## Distribution Files
 
@@ -49,11 +63,6 @@ Once released, users can include Pixlib via CDN:
 ### GitHub Raw URLs
 ```html
 <script src="https://raw.githubusercontent.com/katamini/pixlib/v1.0.0/dist/pixlib.min.js"></script>
-```
-
-### unpkg
-```html
-<script src="https://unpkg.com/katamini/pixlib@v1.0.0/dist/pixlib.min.js"></script>
 ```
 
 ## Version Numbering

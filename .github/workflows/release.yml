@@ -1,21 +1,14 @@
-name: Create Distribution Release
+name: Build Distribution Files
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version number (e.g., v1.0.0)'
-        required: true
-        type: string
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
 
 permissions:
   contents: write
 
 jobs:
-  release:
+  build-and-upload:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,72 +37,10 @@ jobs:
             --comments /^!/ \
             --source-map "url=pixlib.min.js.map"
       
-      - name: Get version
-        id: get_version
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
-          else
-            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Create Release
+      - name: Upload distribution files to release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          name: Release ${{ steps.get_version.outputs.version }}
-          draft: false
-          prerelease: false
           files: |
             dist/pixlib.js
             dist/pixlib.min.js
             dist/pixlib.min.js.map
-          body: |
-            # Pixlib ${{ steps.get_version.outputs.version }}
-            
-            ## 📦 Installation via CDN
-            
-            You can now include Pixlib directly from GitHub:
-            
-            ### Using jsDelivr CDN (Recommended)
-            ```html
-            <!-- Minified version -->
-            <script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@${{ steps.get_version.outputs.version }}/dist/pixlib.min.js"></script>
-            
-            <!-- Or full version -->
-            <script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@${{ steps.get_version.outputs.version }}/dist/pixlib.js"></script>
-            ```
-            
-            ### Using GitHub raw URLs
-            ```html
-            <!-- Minified version -->
-            <script src="https://raw.githubusercontent.com/katamini/pixlib/${{ steps.get_version.outputs.version }}/dist/pixlib.min.js"></script>
-            
-            <!-- Or full version -->
-            <script src="https://raw.githubusercontent.com/katamini/pixlib/${{ steps.get_version.outputs.version }}/dist/pixlib.js"></script>
-            ```
-            
-            ### Using unpkg CDN
-            ```html
-            <script src="https://unpkg.com/katamini/pixlib@${{ steps.get_version.outputs.version }}/dist/pixlib.min.js"></script>
-            ```
-            
-            ## 📥 Download
-            
-            Download the files directly from this release:
-            - `pixlib.js` - Full source with comments
-            - `pixlib.min.js` - Minified for production
-            - `pixlib.min.js.map` - Source map for debugging
-            
-            ## 🚀 Usage
-            
-            ```javascript
-            // Convert an image to pixel art
-            const canvas = Pixlib.convert(imageElement, {
-              pixelSize: 8,
-              colors: 16,
-              palette: 'graffiti'
-            });
-            ```
-            
-            See the [README](https://github.com/katamini/pixlib/blob/main/README.md) for full documentation.
