@@ -265,7 +265,7 @@
           }
         });
 
-        if (maxRange === -1) break;
+        if (maxRange <= 0) break;
 
         // Split bucket
         const bucket = buckets[maxBucketIdx];
@@ -280,7 +280,13 @@
 
       // Average each bucket to get palette
       return buckets.map(bucket => {
+        if (bucket.length === 0) {
+          return { r: 0, g: 0, b: 0, a: 255 };
+        }
         const totalWeight = bucket.reduce((sum, c) => sum + c.count, 0);
+        if (totalWeight === 0) {
+          return { r: 0, g: 0, b: 0, a: 255 };
+        }
         const r = bucket.reduce((sum, c) => sum + c.r * c.count, 0) / totalWeight;
         const g = bucket.reduce((sum, c) => sum + c.g * c.count, 0) / totalWeight;
         const b = bucket.reduce((sum, c) => sum + c.b * c.count, 0) / totalWeight;
@@ -299,6 +305,7 @@
      * @private
      */
     static _getRange(bucket, channel) {
+      if (bucket.length === 0) return 0;
       const values = bucket.map(c => c[channel]);
       return Math.max(...values) - Math.min(...values);
     }
@@ -413,6 +420,10 @@
      * @private
      */
     static _findNearestColor(palette, r, g, b, a) {
+      if (palette.length === 0) {
+        return { r: 0, g: 0, b: 0, a: 255 };
+      }
+      
       let minDist = Infinity;
       let nearest = palette[0];
 
