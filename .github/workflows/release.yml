@@ -1,0 +1,46 @@
+name: Build Distribution Files
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install minifier
+        run: npm install -g terser
+      
+      - name: Create dist directory
+        run: mkdir -p dist
+      
+      - name: Copy original file
+        run: cp pixlib.js dist/pixlib.js
+      
+      - name: Minify library
+        run: |
+          terser pixlib.js \
+            --compress \
+            --mangle \
+            --output dist/pixlib.min.js \
+            --comments /^!/ \
+            --source-map "filename=dist/pixlib.min.js.map,url=pixlib.min.js.map"
+      
+      - name: Upload distribution files to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/pixlib.js
+            dist/pixlib.min.js
+            dist/pixlib.min.js.map

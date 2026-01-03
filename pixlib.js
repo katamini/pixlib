@@ -1,6 +1,11 @@
-/**
- * Pixlib - A lightweight JavaScript library for converting images to pixel art
+/*!
+ * Pixlib - Pixel Art Graffiti Library
+ * A lightweight JavaScript library for converting images to pixel art
  * with graffiti-style color palettes.
+ * 
+ * @version 1.0.0
+ * @license MIT
+ * @repository https://github.com/katamini/pixlib
  * 
  * No dependencies - pure vanilla JavaScript for browser use.
  */
