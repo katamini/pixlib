@@ -25,9 +25,9 @@
      */
     static convert(source, options = {}) {
       const opts = {
-        pixelSize: options.pixelSize || 8,
-        colors: options.colors || 16,
-        palette: options.palette || 'graffiti',
+        pixelSize: options.pixelSize ?? 8,
+        colors: options.colors ?? 16,
+        palette: options.palette ?? 'graffiti',
         maxWidth: options.maxWidth,
         maxHeight: options.maxHeight
       };
@@ -38,6 +38,10 @@
       }
       if (opts.colors < 2 || opts.colors > 256) {
         throw new Error('colors must be between 2 and 256');
+      }
+      const validPalettes = ['auto', 'graffiti', 'bright'];
+      if (validPalettes.indexOf(opts.palette) === -1) {
+        throw new Error("palette must be one of 'auto', 'graffiti', or 'bright'");
       }
 
       // Create source canvas
@@ -56,13 +60,24 @@
         height = opts.maxHeight;
       }
 
+      // Prepare a working canvas that matches the adjusted dimensions
+      let workingCanvas = sourceCanvas;
+      if (width !== sourceCanvas.width || height !== sourceCanvas.height) {
+        const resizedCanvas = document.createElement('canvas');
+        resizedCanvas.width = width;
+        resizedCanvas.height = height;
+        const resizedCtx = resizedCanvas.getContext('2d');
+        resizedCtx.drawImage(sourceCanvas, 0, 0, width, height);
+        workingCanvas = resizedCanvas;
+      }
+
       // Calculate downsampled dimensions
       const downsampledWidth = Math.ceil(width / opts.pixelSize);
       const downsampledHeight = Math.ceil(height / opts.pixelSize);
 
       // Get downsampled image data
       const downsampledData = this._downsample(
-        sourceCanvas, 
+        workingCanvas, 
         downsampledWidth, 
         downsampledHeight
       );
@@ -107,8 +122,19 @@
      * @private
      */
     static _getSourceCanvas(source) {
+      // Validate source parameter
+      if (!source) {
+        throw new Error('source parameter is required');
+      }
+      
       if (source instanceof HTMLCanvasElement) {
         return source;
+      }
+
+      // Check if source is an HTMLImageElement or has image-like properties
+      if (!(source instanceof HTMLImageElement) && 
+          (!source.width && !source.naturalWidth)) {
+        throw new Error('source must be an HTMLImageElement or HTMLCanvasElement');
       }
 
       const canvas = document.createElement('canvas');
