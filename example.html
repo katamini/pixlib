@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixlib - Pixel Art Graffiti Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .controls {
+            background: #f7f7f7;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .control input[type="range"],
+        .control select,
+        .control input[type="file"] {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        .control input[type="range"] {
+            cursor: pointer;
+        }
+
+        .control .value-display {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .output-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .canvas-container {
+            background: #f7f7f7;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .canvas-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .canvas-wrapper {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            display: inline-block;
+            max-width: 100%;
+        }
+
+        .canvas-wrapper canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        .info {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            width: 100%;
+        }
+
+        .examples {
+            margin-top: 20px;
+            padding: 20px;
+            background: #e8f4f8;
+            border-radius: 8px;
+        }
+
+        .examples h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .examples .example-images {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .examples img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .examples img:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .output-section {
+                grid-template-columns: 1fr;
+            }
+
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .error {
+            display: none;
+            padding: 15px;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        .error.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Pixlib - Pixel Art Graffiti</h1>
+            <p>Transform your images into stunning pixel art with graffiti-style color palettes</p>
+        </div>
+
+        <div class="content">
+            <div class="controls">
+                <h3 style="margin-bottom: 20px;">🎮 Controls</h3>
+                
+                <div class="control">
+                    <label>📁 Upload Image</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control">
+                        <label>
+                            🔲 Pixel Size: <span class="value-display" id="pixelSizeValue">8</span>
+                        </label>
+                        <input type="range" id="pixelSize" min="2" max="32" value="8" step="1">
+                    </div>
+
+                    <div class="control">
+                        <label>
+                            🎨 Number of Colors: <span class="value-display" id="colorsValue">16</span>
+                        </label>
+                        <input type="range" id="colors" min="2" max="64" value="16" step="1">
+                    </div>
+
+                    <div class="control">
+                        <label>🎭 Palette Style</label>
+                        <select id="palette">
+                            <option value="graffiti">Graffiti (Bold & Saturated)</option>
+                            <option value="bright">Bright (Very Saturated)</option>
+                            <option value="auto">Auto (Natural)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" id="convertBtn">✨ Convert to Pixel Art</button>
+                    <button class="btn-secondary" id="resetBtn">🔄 Reset</button>
+                    <button class="btn-success" id="downloadBtn" style="display: none;">💾 Download Result</button>
+                </div>
+
+                <div class="loading" id="loading">
+                    ⏳ Processing your image...
+                </div>
+
+                <div class="error" id="error"></div>
+
+                <div class="examples">
+                    <h4>📸 Try with sample images:</h4>
+                    <p style="margin-bottom: 10px; font-size: 0.9em; color: #666;">
+                        Click below to use an example image, or generate a colorful test pattern.
+                    </p>
+                    <div class="button-group">
+                        <button class="btn-secondary" id="generateTestBtn">🌈 Generate Test Pattern</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <div class="canvas-container">
+                    <h3>📥 Original Image</h3>
+                    <div class="canvas-wrapper" id="originalWrapper">
+                        <canvas id="originalCanvas"></canvas>
+                    </div>
+                    <div class="info" id="originalInfo">No image loaded</div>
+                </div>
+
+                <div class="canvas-container">
+                    <h3>✨ Pixel Art Result</h3>
+                    <div class="canvas-wrapper" id="resultWrapper">
+                        <canvas id="resultCanvas"></canvas>
+                    </div>
+                    <div class="info" id="resultInfo">Convert an image to see results</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="pixlib.js"></script>
+    <script>
+        let currentImage = null;
+        let resultCanvas = null;
+
+        // DOM elements
+        const fileInput = document.getElementById('fileInput');
+        const pixelSizeSlider = document.getElementById('pixelSize');
+        const colorsSlider = document.getElementById('colors');
+        const paletteSelect = document.getElementById('palette');
+        const convertBtn = document.getElementById('convertBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const generateTestBtn = document.getElementById('generateTestBtn');
+        const originalCanvas = document.getElementById('originalCanvas');
+        const resultCanvasEl = document.getElementById('resultCanvas');
+        const loading = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const originalInfo = document.getElementById('originalInfo');
+        const resultInfo = document.getElementById('resultInfo');
+        const pixelSizeValue = document.getElementById('pixelSizeValue');
+        const colorsValue = document.getElementById('colorsValue');
+
+        // Update value displays
+        pixelSizeSlider.addEventListener('input', (e) => {
+            pixelSizeValue.textContent = e.target.value;
+        });
+
+        colorsSlider.addEventListener('input', (e) => {
+            colorsValue.textContent = e.target.value;
+        });
+
+        // File upload handler
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                loadImageFromFile(file);
+            }
+        });
+
+        // Generate test pattern
+        generateTestBtn.addEventListener('click', () => {
+            generateTestPattern();
+        });
+
+        // Convert button handler
+        convertBtn.addEventListener('click', () => {
+            if (!currentImage) {
+                showError('Please load an image first!');
+                return;
+            }
+            convertImage();
+        });
+
+        // Reset button handler
+        resetBtn.addEventListener('click', () => {
+            resetAll();
+        });
+
+        // Download button handler
+        downloadBtn.addEventListener('click', () => {
+            if (resultCanvas) {
+                downloadCanvas();
+            }
+        });
+
+        function loadImageFromFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    currentImage = img;
+                    displayOriginal(img);
+                    hideError();
+                };
+                img.onerror = () => {
+                    showError('Failed to load image. Please try another file.');
+                };
+                img.src = e.target.result;
+            };
+            reader.onerror = () => {
+                showError('Failed to read file.');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function generateTestPattern() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+
+            // Create colorful gradient pattern
+            for (let y = 0; y < canvas.height; y += 50) {
+                for (let x = 0; x < canvas.width; x += 50) {
+                    const hue = (x + y) / (canvas.width + canvas.height) * 360;
+                    ctx.fillStyle = `hsl(${hue}, 80%, 60%)`;
+                    ctx.fillRect(x, y, 50, 50);
+                }
+            }
+
+            // Add some circles
+            for (let i = 0; i < 10; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = 20 + Math.random() * 40;
+                const hue = Math.random() * 360;
+                
+                ctx.fillStyle = `hsl(${hue}, 90%, 50%)`;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            const img = new Image();
+            img.onload = () => {
+                currentImage = img;
+                displayOriginal(img);
+                hideError();
+            };
+            img.src = canvas.toDataURL();
+        }
+
+        function displayOriginal(img) {
+            originalCanvas.width = Math.min(img.width, 600);
+            originalCanvas.height = Math.min(img.height, 600);
+            
+            const ctx = originalCanvas.getContext('2d');
+            const scale = Math.min(
+                originalCanvas.width / img.width,
+                originalCanvas.height / img.height
+            );
+            
+            const w = img.width * scale;
+            const h = img.height * scale;
+            const x = (originalCanvas.width - w) / 2;
+            const y = (originalCanvas.height - h) / 2;
+            
+            ctx.clearRect(0, 0, originalCanvas.width, originalCanvas.height);
+            ctx.drawImage(img, x, y, w, h);
+            
+            originalInfo.textContent = `Size: ${img.width} × ${img.height}px`;
+        }
+
+        function convertImage() {
+            if (!currentImage) return;
+
+            loading.classList.add('active');
+            convertBtn.disabled = true;
+            hideError();
+
+            // Use setTimeout to allow UI to update
+            setTimeout(() => {
+                try {
+                    const options = {
+                        pixelSize: parseInt(pixelSizeSlider.value),
+                        colors: parseInt(colorsSlider.value),
+                        palette: paletteSelect.value,
+                        maxWidth: 600,
+                        maxHeight: 600
+                    };
+
+                    resultCanvas = Pixlib.convert(currentImage, options);
+                    
+                    // Display result
+                    resultCanvasEl.width = resultCanvas.width;
+                    resultCanvasEl.height = resultCanvas.height;
+                    const ctx = resultCanvasEl.getContext('2d');
+                    ctx.drawImage(resultCanvas, 0, 0);
+                    
+                    resultInfo.textContent = `Size: ${resultCanvas.width} × ${resultCanvas.height}px | Pixel Size: ${options.pixelSize} | Colors: ${options.colors}`;
+                    downloadBtn.style.display = 'inline-block';
+                    
+                } catch (err) {
+                    showError(`Conversion failed: ${err.message}`);
+                    console.error(err);
+                } finally {
+                    loading.classList.remove('active');
+                    convertBtn.disabled = false;
+                }
+            }, 100);
+        }
+
+        function downloadCanvas() {
+            if (!resultCanvas) return;
+            
+            const link = document.createElement('a');
+            link.download = `pixlib-result-${Date.now()}.png`;
+            link.href = resultCanvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function resetAll() {
+            currentImage = null;
+            resultCanvas = null;
+            fileInput.value = '';
+            
+            const ctx1 = originalCanvas.getContext('2d');
+            ctx1.clearRect(0, 0, originalCanvas.width, originalCanvas.height);
+            
+            const ctx2 = resultCanvasEl.getContext('2d');
+            ctx2.clearRect(0, 0, resultCanvasEl.width, resultCanvasEl.height);
+            
+            originalInfo.textContent = 'No image loaded';
+            resultInfo.textContent = 'Convert an image to see results';
+            
+            downloadBtn.style.display = 'none';
+            hideError();
+        }
+
+        function showError(message) {
+            errorEl.textContent = message;
+            errorEl.classList.add('active');
+        }
+
+        function hideError() {
+            errorEl.classList.remove('active');
+        }
+
+        // Auto-convert on parameter change (with debounce)
+        let autoConvertTimeout;
+        function scheduleAutoConvert() {
+            if (!currentImage) return;
+            
+            clearTimeout(autoConvertTimeout);
+            autoConvertTimeout = setTimeout(() => {
+                convertImage();
+            }, 500);
+        }
+
+        pixelSizeSlider.addEventListener('input', scheduleAutoConvert);
+        colorsSlider.addEventListener('input', scheduleAutoConvert);
+        paletteSelect.addEventListener('change', scheduleAutoConvert);
+    </script>
+</body>
+</html>
