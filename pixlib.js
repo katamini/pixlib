@@ -40,7 +40,7 @@
         throw new Error('colors must be between 2 and 256');
       }
       const validPalettes = ['auto', 'graffiti', 'bright'];
-      if (validPalettes.indexOf(opts.palette) === -1) {
+      if (!validPalettes.includes(opts.palette)) {
         throw new Error("palette must be one of 'auto', 'graffiti', or 'bright'");
       }
 
@@ -133,7 +133,7 @@
 
       // Check if source is an HTMLImageElement or has image-like properties
       if (!(source instanceof HTMLImageElement) && 
-          (!source.width && !source.naturalWidth)) {
+          !source.width && !source.naturalWidth) {
         throw new Error('source must be an HTMLImageElement or HTMLCanvasElement');
       }
 
