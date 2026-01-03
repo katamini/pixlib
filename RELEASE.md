@@ -91,7 +91,7 @@ Before creating a release:
 
 ### CDN not updating
 - jsDelivr may cache files for up to 24 hours
-- Force refresh: Add `?v=version` query parameter
+- Force refresh: Add query parameter like `?v=1.0.0` (e.g., `pixlib.min.js?v=1.0.0`)
 - Use specific version tags instead of `@latest` for production
 
 ## Notes

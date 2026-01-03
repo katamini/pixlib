@@ -141,7 +141,8 @@
         <p><strong>Note:</strong> CDN testing requires an actual release to be published first.</p>
         <p>After creating a release with the GitHub Action:</p>
         <ol>
-          <li>Replace the local <code>&lt;script src="pixlib.js"&gt;</code> with a CDN URL</li>
+          <li>Comment out or remove the local <code>&lt;script src="pixlib.js"&gt;&lt;/script&gt;</code> tag (line 71)</li>
+          <li>Add a CDN script tag in its place (see examples below)</li>
           <li>Reload this page</li>
           <li>Verify Pixlib loads from the CDN</li>
         </ol>

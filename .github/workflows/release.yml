@@ -35,7 +35,7 @@ jobs:
             --mangle \
             --output dist/pixlib.min.js \
             --comments /^!/ \
-            --source-map "url=pixlib.min.js.map"
+            --source-map "filename=dist/pixlib.min.js.map,url=pixlib.min.js.map"
       
       - name: Upload distribution files to release
         uses: softprops/action-gh-release@v1
