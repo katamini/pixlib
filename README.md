@@ -22,6 +22,10 @@ Try it out: **[Pixlib Demo on GitHub Pages](https://katamini.github.io/pixlib/)*
 Include Pixlib directly from jsDelivr CDN:
 
 ```html
+
+<!-- Latest version (github) -->
+<script src="https://github.com/katamini/pixlib/releases/download/v1.0.0/pixlib.min.js"></script>
+
 <!-- Latest version (minified) -->
 <script src="https://cdn.jsdelivr.net/gh/katamini/pixlib@latest/dist/pixlib.min.js"></script>
 
