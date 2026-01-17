@@ -541,10 +541,14 @@
      * @param {Object} options - Configuration options
      * @param {string} options.apiKey - Optional API key (uses built-in demo key if not provided)
      * @returns {Promise<HTMLImageElement>} Promise resolving to image with background removed
+     * 
+     * @note The built-in demo API key has limited usage and is intended for demo purposes only.
+     * For production use, obtain your own API key from https://www.remove.bg/api and pass it
+     * in the options: { apiKey: 'your-key-here' }
      */
     static async removeBackground(source, options = {}) {
       // Built-in demo API key for remove.bg (limited usage)
-      // For production use, users should provide their own API key
+      // For production use, users should provide their own API key via options.apiKey
       const API_KEY = options.apiKey || 'HX64PfnR7gEL61CrLHZZhgqR';
       
       let imageFile;
@@ -583,9 +587,21 @@
         
         return new Promise((resolve, reject) => {
           const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = () => reject(new Error('Failed to load processed image'));
-          img.src = URL.createObjectURL(blob);
+          const objectUrl = URL.createObjectURL(blob);
+          
+          img.onload = () => {
+            // Clean up object URL after image loads to prevent memory leak
+            URL.revokeObjectURL(objectUrl);
+            resolve(img);
+          };
+          
+          img.onerror = () => {
+            // Clean up object URL on error as well
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error('Failed to load processed image'));
+          };
+          
+          img.src = objectUrl;
         });
       } catch (error) {
         throw new Error(`Background removal failed: ${error.message}`);
