@@ -77,11 +77,22 @@
 
         .control input[type="range"],
         .control select,
-        .control input[type="file"] {
+        .control input[type="file"],
+        .control input[type="password"],
+        .control input[type="text"] {
             padding: 8px;
             border: 2px solid #ddd;
             border-radius: 4px;
             font-size: 1em;
+        }
+        
+        .control input[type="password"],
+        .control input[type="text"] {
+            width: 100%;
+        }
+        
+        .control input[type="checkbox"] {
+            cursor: pointer;
         }
 
         .control input[type="range"] {
@@ -166,6 +177,15 @@
             padding: 10px;
             display: inline-block;
             max-width: 100%;
+            /* Checkered background for transparency */
+            background-image: 
+                linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+                linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+                linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: white;
         }
 
         .canvas-wrapper canvas {
@@ -283,6 +303,28 @@
 
                 <div class="control-group">
                     <div class="control">
+                        <label>🔑 Remove.bg API Key (Optional)</label>
+                        <input type="password" id="removeBgApiKey" placeholder="Enter your API key for background removal">
+                        <small style="color: #666; margin-top: 5px; display: block;">
+                            Get your free API key at <a href="https://www.remove.bg/api" target="_blank">remove.bg/api</a>
+                        </small>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control">
+                        <label>
+                            <input type="checkbox" id="removeBackground" style="width: auto; margin-right: 8px;">
+                            🎭 Remove Background (requires API key)
+                        </label>
+                        <small style="color: #666; margin-top: 5px; display: block;">
+                            Remove background before converting to pixel art for transparent results
+                        </small>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control">
                         <label>
                             🔲 Pixel Size: <span class="value-display" id="pixelSizeValue">8</span>
                         </label>
@@ -322,6 +364,7 @@
                     <h4>📸 Try with sample images:</h4>
                     <p style="margin-bottom: 10px; font-size: 0.9em; color: #666;">
                         Click below to use an example image, or generate a colorful test pattern.
+                        For transparent backgrounds, use the Remove Background feature with your API key.
                     </p>
                     <div class="button-group">
                         <button class="btn-secondary" id="generateTestBtn">🌈 Generate Test Pattern</button>
@@ -353,6 +396,7 @@
     <script>
         let currentImage = null;
         let resultCanvas = null;
+        let processedImage = null; // Store image after background removal
 
         // DOM elements
         const fileInput = document.getElementById('fileInput');
@@ -371,6 +415,8 @@
         const resultInfo = document.getElementById('resultInfo');
         const pixelSizeValue = document.getElementById('pixelSizeValue');
         const colorsValue = document.getElementById('colorsValue');
+        const removeBgApiKey = document.getElementById('removeBgApiKey');
+        const removeBackground = document.getElementById('removeBackground');
 
         // Update value displays
         pixelSizeSlider.addEventListener('input', (e) => {
@@ -421,6 +467,7 @@
                 const img = new Image();
                 img.onload = () => {
                     currentImage = img;
+                    processedImage = null; // Reset processed image
                     displayOriginal(img);
                     hideError();
                 };
@@ -433,6 +480,47 @@
                 showError('Failed to read file.');
             };
             reader.readAsDataURL(file);
+        }
+
+        async function removeImageBackground(imageFile) {
+            const apiKey = removeBgApiKey.value.trim();
+            
+            if (!apiKey) {
+                showError('Please enter a remove.bg API key to use background removal.');
+                return null;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('image_file', imageFile);
+                formData.append('size', 'auto');
+
+                const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+                    method: 'POST',
+                    headers: {
+                        'X-Api-Key': apiKey
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMessage = errorData.errors?.[0]?.title || `API error: ${response.status}`;
+                    throw new Error(errorMessage);
+                }
+
+                const blob = await response.blob();
+                
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = () => reject(new Error('Failed to load processed image'));
+                    img.src = URL.createObjectURL(blob);
+                });
+            } catch (error) {
+                showError(`Background removal failed: ${error.message}`);
+                throw error;
+            }
         }
 
         function generateTestPattern() {
@@ -501,8 +589,28 @@
             hideError();
 
             // Use setTimeout to allow UI to update
-            setTimeout(() => {
+            setTimeout(async () => {
                 try {
+                    let imageToConvert = currentImage;
+
+                    // Check if we need to remove background
+                    if (removeBackground.checked) {
+                        loading.textContent = '⏳ Removing background...';
+                        
+                        // Get the file from the file input
+                        const file = fileInput.files[0];
+                        if (!file) {
+                            throw new Error('No file selected for background removal');
+                        }
+
+                        // Remove background
+                        const bgRemovedImage = await removeImageBackground(file);
+                        processedImage = bgRemovedImage;
+                        imageToConvert = bgRemovedImage;
+                        
+                        loading.textContent = '⏳ Converting to pixel art...';
+                    }
+
                     const options = {
                         pixelSize: parseInt(pixelSizeSlider.value),
                         colors: parseInt(colorsSlider.value),
@@ -511,7 +619,7 @@
                         maxHeight: 600
                     };
 
-                    resultCanvas = Pixlib.convert(currentImage, options);
+                    resultCanvas = Pixlib.convert(imageToConvert, options);
                     
                     // Display result
                     resultCanvasEl.width = resultCanvas.width;
@@ -519,7 +627,11 @@
                     const ctx = resultCanvasEl.getContext('2d');
                     ctx.drawImage(resultCanvas, 0, 0);
                     
-                    resultInfo.textContent = `Size: ${resultCanvas.width} × ${resultCanvas.height}px | Pixel Size: ${options.pixelSize} | Colors: ${options.colors}`;
+                    let infoText = `Size: ${resultCanvas.width} × ${resultCanvas.height}px | Pixel Size: ${options.pixelSize} | Colors: ${options.colors}`;
+                    if (removeBackground.checked) {
+                        infoText += ' | Background Removed';
+                    }
+                    resultInfo.textContent = infoText;
                     downloadBtn.style.display = 'inline-block';
                     
                 } catch (err) {
@@ -527,6 +639,7 @@
                     console.error(err);
                 } finally {
                     loading.classList.remove('active');
+                    loading.textContent = '⏳ Processing your image...';
                     convertBtn.disabled = false;
                 }
             }, 100);
@@ -544,6 +657,7 @@
         function resetAll() {
             currentImage = null;
             resultCanvas = null;
+            processedImage = null;
             fileInput.value = '';
             
             const ctx1 = originalCanvas.getContext('2d');
@@ -556,6 +670,7 @@
             resultInfo.textContent = 'Convert an image to see results';
             
             downloadBtn.style.display = 'none';
+            removeBackground.checked = false;
             hideError();
         }
 
