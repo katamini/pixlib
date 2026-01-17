@@ -303,22 +303,12 @@
 
                 <div class="control-group">
                     <div class="control">
-                        <label>🔑 Remove.bg API Key (Optional)</label>
-                        <input type="password" id="removeBgApiKey" placeholder="Enter your API key for background removal">
-                        <small style="color: #666; margin-top: 5px; display: block;">
-                            Get your free API key at <a href="https://www.remove.bg/api" target="_blank">remove.bg/api</a>
-                        </small>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <div class="control">
                         <label>
                             <input type="checkbox" id="removeBackground" style="width: auto; margin-right: 8px;">
-                            🎭 Remove Background (requires API key)
+                            🎭 Remove Background (Transparent)
                         </label>
                         <small style="color: #666; margin-top: 5px; display: block;">
-                            Remove background before converting to pixel art for transparent results
+                            Remove background before converting to pixel art for transparent results. Uses built-in demo API.
                         </small>
                     </div>
                 </div>
@@ -364,7 +354,7 @@
                     <h4>📸 Try with sample images:</h4>
                     <p style="margin-bottom: 10px; font-size: 0.9em; color: #666;">
                         Click below to use an example image, or generate a colorful test pattern.
-                        For transparent backgrounds, use the Remove Background feature with your API key.
+                        Check "Remove Background" to get transparent pixel art results!
                     </p>
                     <div class="button-group">
                         <button class="btn-secondary" id="generateTestBtn">🌈 Generate Test Pattern</button>
@@ -415,7 +405,6 @@
         const resultInfo = document.getElementById('resultInfo');
         const pixelSizeValue = document.getElementById('pixelSizeValue');
         const colorsValue = document.getElementById('colorsValue');
-        const removeBgApiKey = document.getElementById('removeBgApiKey');
         const removeBackground = document.getElementById('removeBackground');
 
         // Update value displays
@@ -480,47 +469,6 @@
                 showError('Failed to read file.');
             };
             reader.readAsDataURL(file);
-        }
-
-        async function removeImageBackground(imageFile) {
-            const apiKey = removeBgApiKey.value.trim();
-            
-            if (!apiKey) {
-                showError('Please enter a remove.bg API key to use background removal.');
-                return null;
-            }
-
-            try {
-                const formData = new FormData();
-                formData.append('image_file', imageFile);
-                formData.append('size', 'auto');
-
-                const response = await fetch('https://api.remove.bg/v1.0/removebg', {
-                    method: 'POST',
-                    headers: {
-                        'X-Api-Key': apiKey
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    const errorMessage = errorData.errors?.[0]?.title || `API error: ${response.status}`;
-                    throw new Error(errorMessage);
-                }
-
-                const blob = await response.blob();
-                
-                return new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = () => resolve(img);
-                    img.onerror = () => reject(new Error('Failed to load processed image'));
-                    img.src = URL.createObjectURL(blob);
-                });
-            } catch (error) {
-                showError(`Background removal failed: ${error.message}`);
-                throw error;
-            }
         }
 
         function generateTestPattern() {
@@ -591,7 +539,14 @@
             // Use setTimeout to allow UI to update
             setTimeout(async () => {
                 try {
-                    let imageToConvert = currentImage;
+                    const options = {
+                        pixelSize: parseInt(pixelSizeSlider.value),
+                        colors: parseInt(colorsSlider.value),
+                        palette: paletteSelect.value,
+                        maxWidth: 600,
+                        maxHeight: 600,
+                        removeBackground: removeBackground.checked
+                    };
 
                     // Check if we need to remove background
                     if (removeBackground.checked) {
@@ -603,23 +558,12 @@
                             throw new Error('No file selected for background removal');
                         }
 
-                        // Remove background
-                        const bgRemovedImage = await removeImageBackground(file);
-                        processedImage = bgRemovedImage;
-                        imageToConvert = bgRemovedImage;
-                        
-                        loading.textContent = '⏳ Converting to pixel art...';
+                        // Use the library's built-in background removal
+                        resultCanvas = await Pixlib.convertWithBackgroundRemoval(file, options);
+                    } else {
+                        // Regular conversion without background removal
+                        resultCanvas = Pixlib.convert(currentImage, options);
                     }
-
-                    const options = {
-                        pixelSize: parseInt(pixelSizeSlider.value),
-                        colors: parseInt(colorsSlider.value),
-                        palette: paletteSelect.value,
-                        maxWidth: 600,
-                        maxHeight: 600
-                    };
-
-                    resultCanvas = Pixlib.convert(imageToConvert, options);
                     
                     // Display result
                     resultCanvasEl.width = resultCanvas.width;
