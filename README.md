@@ -9,6 +9,7 @@ Try it out: **[Pixlib Demo on GitHub Pages](https://katamini.github.io/pixlib/)*
 ## ✨ Features
 
 - **Zero Dependencies** - Pure vanilla JavaScript, no external libraries required
+- **Background Removal** - Built-in integration with remove.bg API for transparent backgrounds
 - **Multiple Palette Styles** - Choose from graffiti, bright, or auto color palettes
 - **Customizable** - Control pixel size, color count, and output dimensions
 - **Browser-Friendly** - Works directly in the browser with easy integration
@@ -168,6 +169,54 @@ input.addEventListener('change', async (e) => {
 });
 ```
 
+### `Pixlib.removeBackground(source, options)`
+
+Removes the background from an image using the remove.bg API.
+
+**Parameters:**
+- `source` (HTMLImageElement | HTMLCanvasElement | File | Blob) - Image source
+- `options` (Object) - Configuration options
+  - `apiKey` (string, optional) - Custom API key (uses built-in demo key if not provided)
+
+**Returns:** `Promise<HTMLImageElement>` - Promise resolving to image with background removed
+
+**Example:**
+```javascript
+const img = document.getElementById('photo');
+const transparentImg = await Pixlib.removeBackground(img);
+document.body.appendChild(transparentImg);
+
+// Or with a custom API key
+const transparentImg = await Pixlib.removeBackground(img, {
+  apiKey: 'your-api-key-here'
+});
+```
+
+### `Pixlib.convertWithBackgroundRemoval(source, options)`
+
+Converts an image to pixel art with optional background removal in one step.
+
+**Parameters:**
+- `source` (HTMLImageElement | HTMLCanvasElement | File | Blob) - Image source
+- `options` (Object) - Configuration options
+  - `removeBackground` (boolean) - Whether to remove background first
+  - `removeBgApiKey` (string, optional) - Custom API key for remove.bg
+  - All other options from `convert()`
+
+**Returns:** `Promise<HTMLCanvasElement>` - Promise resolving to canvas with pixel art
+
+**Example:**
+```javascript
+const file = document.querySelector('input[type="file"]').files[0];
+const canvas = await Pixlib.convertWithBackgroundRemoval(file, {
+  removeBackground: true,
+  pixelSize: 10,
+  colors: 16,
+  palette: 'graffiti'
+});
+document.body.appendChild(canvas);
+```
+
 ## 🎭 Palette Styles
 
 ### Graffiti (default)
@@ -192,12 +241,39 @@ Pixlib.convert(img, { palette: 'auto' });
 
 Open `example.html` in your browser to see an interactive demo with:
 - File upload support
+- Background removal with transparent results
 - Live parameter adjustment
 - Multiple palette styles
 - Test pattern generator
 - Download functionality
 
 ## 💡 Usage Examples
+
+### Create Transparent Pixel Art
+
+```javascript
+// Remove background and convert to pixel art in one step
+const fileInput = document.querySelector('input[type="file"]');
+fileInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  const canvas = await Pixlib.convertWithBackgroundRemoval(file, {
+    removeBackground: true,
+    pixelSize: 8,
+    colors: 16,
+    palette: 'graffiti'
+  });
+  document.body.appendChild(canvas);
+});
+```
+
+### Remove Background Only
+
+```javascript
+// Just remove background without pixelation
+const img = document.getElementById('photo');
+const transparentImg = await Pixlib.removeBackground(img);
+document.body.appendChild(transparentImg);
+```
 
 ### Create a Thumbnail Gallery
 

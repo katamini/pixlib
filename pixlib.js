@@ -534,6 +534,104 @@
         reader.readAsDataURL(file);
       });
     }
+
+    /**
+     * Remove background from an image using remove.bg API
+     * @param {File|Blob|HTMLImageElement} source - Image source
+     * @param {Object} options - Configuration options
+     * @param {string} options.apiKey - Optional API key (uses built-in demo key if not provided)
+     * @returns {Promise<HTMLImageElement>} Promise resolving to image with background removed
+     * 
+     * @note The built-in demo API key has limited usage and is intended for demo purposes only.
+     * For production use, obtain your own API key from https://www.remove.bg/api and pass it
+     * in the options: { apiKey: 'your-key-here' }
+     */
+    static async removeBackground(source, options = {}) {
+      // Built-in demo API key for remove.bg (limited usage)
+      // For production use, users should provide their own API key via options.apiKey
+      const API_KEY = options.apiKey || 'HX64PfnR7gEL61CrLHZZhgqR';
+      
+      let imageFile;
+      
+      // Convert source to File/Blob if it's an image element
+      if (source instanceof HTMLImageElement || source instanceof HTMLCanvasElement) {
+        const canvas = this._getSourceCanvas(source);
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        imageFile = new File([blob], 'image.png', { type: 'image/png' });
+      } else if (source instanceof File || source instanceof Blob) {
+        imageFile = source;
+      } else {
+        throw new Error('source must be an HTMLImageElement, HTMLCanvasElement, File, or Blob');
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('image_file', imageFile);
+        formData.append('size', 'auto');
+
+        const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': API_KEY
+          },
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.errors?.[0]?.title || `API error: ${response.status}`;
+          throw new Error(errorMessage);
+        }
+
+        const blob = await response.blob();
+        
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          const objectUrl = URL.createObjectURL(blob);
+          
+          img.onload = () => {
+            // Clean up object URL after image loads to prevent memory leak
+            URL.revokeObjectURL(objectUrl);
+            resolve(img);
+          };
+          
+          img.onerror = () => {
+            // Clean up object URL on error as well
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error('Failed to load processed image'));
+          };
+          
+          img.src = objectUrl;
+        });
+      } catch (error) {
+        throw new Error(`Background removal failed: ${error.message}`);
+      }
+    }
+
+    /**
+     * Convert image to pixel art with optional background removal
+     * @param {HTMLImageElement|HTMLCanvasElement|File|Blob} source - Source image
+     * @param {Object} options - Configuration options
+     * @param {boolean} options.removeBackground - Whether to remove background first
+     * @param {string} options.removeBgApiKey - Optional remove.bg API key
+     * @param {number} options.pixelSize - Size of each pixel block (default: 8)
+     * @param {number} options.colors - Number of colors in palette (default: 16)
+     * @param {string} options.palette - Palette type (default: 'graffiti')
+     * @param {number} options.maxWidth - Maximum output width (optional)
+     * @param {number} options.maxHeight - Maximum output height (optional)
+     * @returns {Promise<HTMLCanvasElement>} Promise resolving to canvas with pixel art
+     */
+    static async convertWithBackgroundRemoval(source, options = {}) {
+      let imageToConvert = source;
+      
+      if (options.removeBackground) {
+        imageToConvert = await this.removeBackground(source, {
+          apiKey: options.removeBgApiKey
+        });
+      }
+      
+      return this.convert(imageToConvert, options);
+    }
   }
 
   // Export for different module systems
